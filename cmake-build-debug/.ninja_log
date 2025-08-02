@@ -1,0 +1,9 @@
+# ninja log v6
+62	2345	7758756675061424	CMakeFiles/TobiOS.dir/src/memory/memory_manager.cpp.obj	a1ff6394b39409de
+11	4215	7758756674561421	CMakeFiles/TobiOS.dir/main.cpp.obj	d61cc634508ea21f
+78	3224	7758756675231475	CMakeFiles/TobiOS.dir/src/process/process_manager.cpp.obj	f3deddc896b0ba1b
+97	3421	7758756675421461	CMakeFiles/TobiOS.dir/src/filesystem/filesystem.cpp.obj	8f2d914b9cc117e7
+46	3905	7758756674901445	CMakeFiles/TobiOS.dir/src/kernel/logger.cpp.obj	5e08650495ff3c52
+29	4607	7758756674741438	CMakeFiles/TobiOS.dir/src/kernel/kernel.cpp.obj	8266c82211b6898f
+116	5070	7758756675611486	CMakeFiles/TobiOS.dir/src/shell/shell.cpp.obj	10ec818a6a67da31
+5070	5932	7758756725151818	TobiOS.exe	118629fa4c84d12a
