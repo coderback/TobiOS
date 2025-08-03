@@ -26,7 +26,7 @@ A comprehensive operating system simulation written in C++ that demonstrates cor
 - Extensive logging for understanding system operations
 - Interactive exploration of OS internals
 
-## 🛠️ Building TobiOS
+## Building TobiOS
 
 ### Prerequisites
 - C++20 compatible compiler (GCC 10+ or Clang 12+)
@@ -225,7 +225,3 @@ g++ -std=c++20 -I include ...
 - Ensure proper command syntax
 - Use `help` to see available commands
 - Check for typos in command names
-
-## License
-
-This project is created for educational purposes. Feel free to use, modify, and distribute for learning and teaching operating system concepts.
