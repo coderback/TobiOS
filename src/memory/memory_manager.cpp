@@ -141,3 +141,5 @@ void MemoryManager::mergeAdjacentBlocks() {
         }
     }
 }
+
+}  // namespace TobiOS
