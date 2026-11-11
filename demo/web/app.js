@@ -5,37 +5,38 @@ const stateEl = $('state');
 const failEl = $('fail');
 const srLog = $('sr-log');
 
-const THEMES = {
-  dark: {
-    background: '#0a0d08', foreground: '#dfe6d3', cursor: '#8fd16f', selectionBackground: '#3a4a2c',
-    black: '#0a0d08', white: '#dfe6d3', brightWhite: '#ffffff',
-    red: '#f87171', green: '#8fd16f', yellow: '#facc15', blue: '#7dd3fc', magenta: '#e879f9', cyan: '#67e8f9',
-  },
-  light: {
-    background: '#fbfaf4', foreground: '#1d2118', cursor: '#2f6b1f', selectionBackground: '#cfd8b8',
-    // The logger prints INFO in ANSI white, which has to stay readable on a light background.
-    black: '#1d2118', white: '#2b3024', brightWhite: '#1d2118',
-    red: '#b91c1c', green: '#2f6b1f', yellow: '#92660a', blue: '#1d4ed8', magenta: '#a21caf', cyan: '#0e7490',
-  },
+// The terminal window is always dark, as part of the page's retro desktop look.
+const THEME = {
+  background: '#14171a', foreground: '#d7f5e1', cursor: '#6ee7a0', cursorAccent: '#14171a', selectionBackground: '#2f4a3b',
+  black: '#14171a', white: '#d7f5e1', brightWhite: '#ffffff', brightBlack: '#8a958f',
+  red: '#f87171', green: '#6ee7a0', yellow: '#facc15', blue: '#7dd3fc', magenta: '#e879f9', cyan: '#67e8f9',
 };
-const darkQuery = matchMedia('(prefers-color-scheme: dark)');
 const narrow = matchMedia('(max-width: 560px)');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const FONT = '"IBM Plex Mono", ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace';
+
+// xterm measures the character cell when it opens, so give the web font a moment to arrive first.
+if (document.fonts?.load) {
+  await Promise.race([
+    Promise.all([document.fonts.load('400 14px "IBM Plex Mono"'), document.fonts.load('700 14px "IBM Plex Mono"')]).catch(() => {}),
+    new Promise((r) => setTimeout(r, 2500)),
+  ]);
+}
 
 const term = new Terminal({
   convertEol: true,
-  cursorBlink: true,
-  fontFamily: 'ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace',
+  cursorBlink: !reducedMotion,
+  fontFamily: FONT,
   fontSize: narrow.matches ? 11 : 14,
-  lineHeight: 1.1,
+  lineHeight: 1.15,
   scrollback: 2000,
-  theme: THEMES[darkQuery.matches ? 'dark' : 'light'],
+  theme: THEME,
 });
 const fit = new FitAddon.FitAddon();
 term.loadAddon(fit);
 term.open($('term'));
 fit.fit();
 new ResizeObserver(() => fit.fit()).observe($('term'));
-darkQuery.addEventListener('change', (e) => { term.options.theme = THEMES[e.matches ? 'dark' : 'light']; });
 // Tab should move focus out of the terminal instead of being swallowed by it.
 term.attachCustomKeyEventHandler((e) => e.key !== 'Tab');
 

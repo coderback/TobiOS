@@ -5,72 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>TobiOS: OS simulation in your browser</title>
 <meta name="description" content="TobiOS is an operating system simulation written in C++20. This page runs the real program, compiled to WebAssembly, behind a browser terminal.">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/xterm.css">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="top">
-  <div class="wrap">
-    <p class="mark" aria-hidden="true">tobios@wasm:~$</p>
-    <h1>TobiOS</h1>
-    <p class="lede">An operating system simulation written in C++20: a kernel boot sequence, an in-memory filesystem, a process table and a shell. The terminal below runs that C++, compiled to WebAssembly, inside this tab. Nothing is sent to a server.</p>
-    <p class="links"><a href="https://github.com/coderback/TobiOS">Source on GitHub</a> <a href="https://github.com/coderback/TobiOS/tree/live-demo/demo">This web build</a></p>
+<nav class="menubar" aria-label="Page">
+  <div class="menubar-inner">
+    <p class="brand"><span aria-hidden="true">◆</span> TobiOS</p>
+    <a href="#terminal">Terminal</a>
+    <a href="#inside">Inside</a>
+    <a href="#build">Web build</a>
+    <span class="spacer"></span>
+    <a class="gh" href="https://github.com/coderback/TobiOS">Source on GitHub</a>
   </div>
-</header>
+</nav>
 
-<main class="wrap">
-  <section aria-labelledby="term-h" class="console">
-    <div class="console-bar">
-      <h2 id="term-h">Console</h2>
-      <span id="state" class="state" role="status">loading</span>
-      <button id="reboot" type="button" class="ghost">Reboot</button>
+<main>
+  <div class="desk">
+    <section class="window about" aria-labelledby="about-title">
+      <p class="titlebar" id="about-title">About TobiOS</p>
+      <div class="window-body">
+        <h1>TobiOS</h1>
+        <p class="lede">An operating system simulation written in C++20: a kernel boot sequence, an in-memory filesystem, a process table and a shell. The terminal runs that C++, compiled to WebAssembly, inside this tab.</p>
+        <p class="aside">Nothing is sent to a server.</p>
+        <p class="provenance"><span class="tag">LIVE WASM</span> Every command is executed by the compiled program in your browser. <a href="#inside">What it does and does not do</a></p>
+      </div>
+    </section>
+
+    <section id="terminal" class="window console" aria-labelledby="term-h">
+      <div class="titlebar console-bar">
+        <span class="box" aria-hidden="true"></span>
+        <h2 id="term-h">tobios@wasm: ~ <span class="sub">(C++20 → WebAssembly)</span></h2>
+        <span id="state" class="state" role="status">loading</span>
+        <button id="reboot" type="button" class="ghost">Reboot</button>
+      </div>
+      <div id="term" class="term" role="application" aria-label="TobiOS terminal. Type a command and press Enter, or use the command box below."></div>
+      <noscript><p class="fail">The terminal needs JavaScript and WebAssembly.</p></noscript>
+      <p id="fail" class="fail" hidden></p>
+      <form id="cmdline" class="cmdline" autocomplete="off">
+        <label for="cmd">Command</label>
+        <input id="cmd" name="cmd" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" maxlength="200" placeholder="ls /home">
+        <button type="submit">Run</button>
+      </form>
+      <div id="sr-log" class="sr-only" aria-live="polite"></div>
+    </section>
+
+    <section class="window try" aria-labelledby="try-title">
+      <p class="titlebar" id="try-title">Try a command</p>
+      <div class="chips" role="group" aria-labelledby="try-title">
+        <button type="button" data-cmd="help">help</button>
+        <button type="button" data-cmd="status">status</button>
+        <button type="button" data-cmd="ls /">ls /</button>
+        <button type="button" data-cmd="cat /home/welcome.txt">cat /home/welcome.txt</button>
+        <button type="button" data-cmd="ps">ps</button>
+        <button type="button" data-cmd="mkdir /home/visitor">mkdir /home/visitor</button>
+        <button type="button" data-cmd="touch /home/visitor/notes.txt">touch /home/visitor/notes.txt</button>
+        <button type="button" data-cmd="ls /home/visitor">ls /home/visitor</button>
+        <button type="button" data-cmd="exit">exit</button>
+      </div>
+    </section>
+  </div>
+
+  <section id="inside" class="band" aria-labelledby="inside-h">
+    <div class="wrap">
+      <h2 id="inside-h">What the code does and does not do</h2>
+      <dl class="facts">
+        <div class="card"><dt>Shell</dt><dd>Eight commands: <code>help</code>, <code>exit</code>, <code>ls</code>, <code>cat</code>, <code>ps</code>, <code>mkdir</code>, <code>touch</code>, <code>status</code>.</dd></div>
+        <div class="card"><dt>Filesystem</dt><dd>A tree of nodes held in memory, with <code>/home</code>, <code>/tmp</code> and <code>/bin</code> created at boot. It is lost on reload, and paths are absolute because the shell has no <code>cd</code>.</dd></div>
+        <div class="card"><dt>Processes</dt><dd>The process manager holds control blocks and a round-robin queue, but it never runs a program. The kernel creates one <code>init</code> entry and no shell command adds another, so <code>ps</code> always lists that one process.</dd></div>
+        <div class="card"><dt>Memory</dt><dd>A 1 MB first-fit allocator is built and initialised at boot. No shell command calls it, so you can see it reported by <code>status</code> but cannot exercise it from here.</dd></div>
+        <div class="card"><dt>Simulation</dt><dd>This is a user-space program that models OS concepts. It does not boot on hardware or schedule real tasks.</dd></div>
+      </dl>
     </div>
-    <div id="term" class="term" role="application" aria-label="TobiOS terminal. Type a command and press Enter, or use the command box below."></div>
-    <noscript><p class="fail">The terminal needs JavaScript and WebAssembly.</p></noscript>
-    <p id="fail" class="fail" hidden></p>
-    <form id="cmdline" class="cmdline" autocomplete="off">
-      <label for="cmd">Command</label>
-      <input id="cmd" name="cmd" type="text" spellcheck="false" autocapitalize="off" autocorrect="off" enterkeyhint="send" maxlength="200" placeholder="ls /home">
-      <button type="submit">Run</button>
-    </form>
-    <div class="chips" role="group" aria-label="Example commands">
-      <button type="button" data-cmd="help">help</button>
-      <button type="button" data-cmd="status">status</button>
-      <button type="button" data-cmd="ls /">ls /</button>
-      <button type="button" data-cmd="cat /home/welcome.txt">cat /home/welcome.txt</button>
-      <button type="button" data-cmd="ps">ps</button>
-      <button type="button" data-cmd="mkdir /home/visitor">mkdir /home/visitor</button>
-      <button type="button" data-cmd="touch /home/visitor/notes.txt">touch /home/visitor/notes.txt</button>
-      <button type="button" data-cmd="ls /home/visitor">ls /home/visitor</button>
-      <button type="button" data-cmd="exit">exit</button>
-    </div>
-    <div id="sr-log" class="sr-only" aria-live="polite"></div>
   </section>
 
-  <section aria-labelledby="how-h">
-    <h2 id="how-h">How this works</h2>
-    <ol class="flow">
-      <li><strong>Same sources.</strong> <code>main.cpp</code> and everything under <code>src/</code> go through Emscripten's <code>em++</code>, with no <code>#ifdef</code>s for the web and no JavaScript copy of the commands.</li>
-      <li><strong>Blocking stdin.</strong> The shell loop calls <code>std::getline(std::cin, ...)</code>, which would freeze a browser tab. A small JS library replaces the <code>fd_read</code> syscall and uses Emscripten's ASYNCIFY to suspend the wasm stack until you press Enter, then resumes it mid-call.</li>
-      <li><strong>Terminal.</strong> <code>fd_write</code> hands stdout bytes, ANSI colours included, to xterm.js. The page does what a tty driver would: echo, backspace and history. It only ever passes finished lines to the program.</li>
-      <li><strong>Exit and reboot.</strong> <code>exit</code> runs the real shutdown path. Reboot starts a new wasm instance, so the filesystem starts over.</li>
-    </ol>
-
-    <h2>What the code does and does not do</h2>
-    <dl class="facts">
-      <div><dt>Shell</dt><dd>Eight commands: <code>help</code>, <code>exit</code>, <code>ls</code>, <code>cat</code>, <code>ps</code>, <code>mkdir</code>, <code>touch</code>, <code>status</code>.</dd></div>
-      <div><dt>Filesystem</dt><dd>A tree of nodes held in memory, with <code>/home</code>, <code>/tmp</code> and <code>/bin</code> created at boot. It is lost on reload, and paths are absolute because the shell has no <code>cd</code>.</dd></div>
-      <div><dt>Processes</dt><dd>The process manager holds control blocks and a round-robin queue, but it never runs a program. The kernel creates one <code>init</code> entry and no shell command adds another, so <code>ps</code> always lists that one process.</dd></div>
-      <div><dt>Memory</dt><dd>A 1 MB first-fit allocator is built and initialised at boot. No shell command calls it, so you can see it reported by <code>status</code> but cannot exercise it from here.</dd></div>
-      <div><dt>Simulation</dt><dd>This is a user-space program that models OS concepts. It does not boot on hardware or schedule real tasks.</dd></div>
-    </dl>
-    <p class="note">One source change was needed: <code>src/memory/memory_manager.cpp</code> and <code>src/process/process_manager.cpp</code> were missing the closing brace of their namespace on the default branch, so the <code>live-demo</code> branch adds those two braces.</p>
+  <section id="build" class="band alt" aria-labelledby="how-h">
+    <div class="wrap">
+      <h2 id="how-h">How the web build works</h2>
+      <ol class="flow">
+        <li class="card"><strong>Same sources.</strong> <code>main.cpp</code> and everything under <code>src/</code> go through Emscripten's <code>em++</code>, with no <code>#ifdef</code>s for the web and no JavaScript copy of the commands.</li>
+        <li class="card"><strong>Blocking stdin.</strong> The shell loop calls <code>std::getline(std::cin, ...)</code>, which would freeze a browser tab. A small JS library replaces the <code>fd_read</code> syscall and uses Emscripten's ASYNCIFY to suspend the wasm stack until you press Enter, then resumes it mid-call.</li>
+        <li class="card"><strong>Terminal.</strong> <code>fd_write</code> hands stdout bytes, ANSI colours included, to xterm.js. The page does what a tty driver would: echo, backspace and history. It only ever passes finished lines to the program.</li>
+        <li class="card"><strong>Exit and reboot.</strong> <code>exit</code> runs the real shutdown path. Reboot starts a new wasm instance, so the filesystem starts over.</li>
+      </ol>
+      <p class="note">One source change was needed: <code>src/memory/memory_manager.cpp</code> and <code>src/process/process_manager.cpp</code> were missing the closing brace of their namespace on the default branch, so the <code>live-demo</code> branch adds those two braces.</p>
+    </div>
   </section>
 </main>
 
-<footer class="wrap foot">
-  <p>Live: every command on this page is executed by the compiled program in your browser. Built with Emscripten 3.1.74 and xterm.js.</p>
+<footer class="foot">
+  <div class="wrap foot-inner">
+    <p>Built by Timothy Ojebiyi as a portfolio demo. Compiled with Emscripten 3.1.74, with a terminal by xterm.js.</p>
+    <p class="foot-links"><a href="https://timothyojebiyi.com">Portfolio</a><a href="https://github.com/coderback/TobiOS">Source on GitHub</a><a href="https://github.com/coderback/TobiOS/tree/live-demo/demo">This web build</a></p>
+  </div>
 </footer>
 
 <script src="vendor/xterm.js"></script>
